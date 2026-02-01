@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const initAuth = async () => {
       try {
         const user = await authApi.getMe();
-        setAuth(user);
+        setAuth(user.data);
       } catch {
         logout();
       }

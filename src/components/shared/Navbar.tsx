@@ -42,10 +42,6 @@ const Navbar = () => {
       );
     }
 
-    if (user.userType === "SELLER") {
-      items.push({ label: "My Products", path: "/my-products" });
-    }
-
     if (user.userType === "SELLER" || user.userType === "ADMIN") {
       items.push({ label: "Manage Products", path: "/manage-products" });
     }
@@ -56,8 +52,6 @@ const Navbar = () => {
 
     return items;
   };
-
-  console.log(user);
 
   return (
     <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
