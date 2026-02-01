@@ -1,20 +1,23 @@
+"use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 import { LoginFormData, loginSchema } from "../schemas/auth-schema";
+import Link from "next/link";
 
-interface LoginFormProps {
-  onSubmit: (data: LoginFormData) => Promise<void> | void;
-  onNavigateToRegister?: () => void;
-}
+import { useAuthStore } from "@/store/use-auth-store";
+import { useRouter } from "next/navigation";
+import { authApi } from "../api/auth.api";
+import { AxiosError } from "axios";
 
-const LoginForm: React.FC<LoginFormProps> = ({
-  onSubmit,
-  onNavigateToRegister,
-}) => {
+const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const router = useRouter();
 
   const {
     register,
@@ -26,11 +29,32 @@ const LoginForm: React.FC<LoginFormProps> = ({
   });
 
   const onFormSubmit = async (data: LoginFormData) => {
+    setError(null);
     setIsLoading(true);
     try {
-      await onSubmit(data);
-    } catch (error) {
-      console.error("Login error:", error);
+      const response = await authApi.login(data);
+
+      const userData = response?.data;
+      console.log({ response, userData });
+
+      setAuth(userData);
+
+      router.push("/");
+      router.refresh();
+    } catch (err: any) {
+      if (err instanceof AxiosError) {
+        const serverMessage =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.response?.data;
+
+        setError(
+          serverMessage || "Login failed. Please check your credentials.",
+        );
+      } else {
+        setError("An unexpected error occurred.");
+      }
+      console.error("Login error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +63,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-card border border-border rounded-lg shadow-lg p-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">
             Welcome Back
@@ -49,7 +72,14 @@ const LoginForm: React.FC<LoginFormProps> = ({
           </p>
         </div>
 
-        {/* Form */}
+        {/* Global Error Message Display */}
+        {error && (
+          <div className="mb-6 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center space-x-2 text-destructive text-sm animate-in fade-in zoom-in duration-200">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
           {/* Email Field */}
           <div className="space-y-2">
@@ -66,21 +96,19 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <input
                 id="email"
                 type="email"
-                autoComplete="email"
                 {...register("email")}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-background text-foreground ${
                   errors.email
                     ? "border-destructive focus:ring-destructive/50"
                     : "border-input focus:ring-ring"
-                } bg-background text-foreground`}
+                }`}
                 placeholder="Enter your email"
               />
             </div>
             {errors.email && (
-              <div className="flex items-center space-x-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.email.message}</span>
-              </div>
+              <p className="text-destructive text-xs mt-1">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
@@ -99,19 +127,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
                 {...register("password")}
-                className={`w-full pl-10 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                className={`w-full pl-10 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-background text-foreground ${
                   errors.password
                     ? "border-destructive focus:ring-destructive/50"
                     : "border-input focus:ring-ring"
-                } bg-background text-foreground`}
+                }`}
                 placeholder="Enter your password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -121,34 +148,21 @@ const LoginForm: React.FC<LoginFormProps> = ({
               </button>
             </div>
             {errors.password && (
-              <div className="flex items-center space-x-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.password.message}</span>
-              </div>
+              <p className="text-destructive text-xs mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
-          {/* Forgot Password Link */}
-          <div className="flex items-center justify-end">
-            <a
-              href="/forgot-password"
-              className="text-sm text-primary hover:text-primary/80 transition-colors font-medium"
-            >
-              Forgot password?
-            </a>
-          </div>
-
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting || isLoading}
-            className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           >
-            {isSubmitting || isLoading ? (
+            {isLoading ? (
               <span className="flex items-center justify-center space-x-2">
                 <svg
-                  className="animate-spin h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
+                  className="animate-spin h-5 w-5 text-current"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -166,7 +180,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                <span>Signing in...</span>
+                <span>Authenticating...</span>
               </span>
             ) : (
               "Sign In"
@@ -174,8 +188,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-6">
+        <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-border" />
           </div>
@@ -184,17 +197,15 @@ const LoginForm: React.FC<LoginFormProps> = ({
           </div>
         </div>
 
-        {/* Register Link */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             {"Don't"} have an account?{" "}
-            <button
-              type="button"
-              onClick={onNavigateToRegister}
-              className="text-primary hover:text-primary/80 transition-colors font-medium"
+            <Link
+              href="/register"
+              className="text-primary hover:underline font-medium"
             >
               Sign up
-            </button>
+            </Link>
           </p>
         </div>
       </div>

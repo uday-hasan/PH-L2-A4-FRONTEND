@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,37 +12,34 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { RegisterFormData, registerSchema } from "../schemas/auth-schema";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { authApi } from "../api/auth.api";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
 
-interface RegisterFormProps {
-  onSubmit: (data: RegisterFormData) => Promise<void> | void;
-  onNavigateToLogin?: () => void;
-}
-
-const RegisterForm: React.FC<RegisterFormProps> = ({
-  onSubmit,
-  onNavigateToLogin,
-}) => {
+const RegisterForm = () => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
-  } = useForm<RegisterFormData>({
+    formState: { errors },
+  } = useForm<Omit<RegisterFormData, "status">>({
     resolver: zodResolver(registerSchema),
     mode: "onBlur",
     defaultValues: {
       userType: "CUSTOMER",
-      status: "ACTIVE",
     },
   });
 
   const password = watch("password");
 
-  // Password strength indicators
   const passwordChecks = {
     minLength: password?.length >= 8,
     hasUppercase: /[A-Z]/.test(password || ""),
@@ -50,12 +48,31 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
     hasSpecial: /[^A-Za-z0-9]/.test(password || ""),
   };
 
-  const onFormSubmit = async (data: RegisterFormData) => {
+  const onFormSubmit = async (data: Omit<RegisterFormData, "status">) => {
     setIsLoading(true);
+    setServerError(null);
+    const toastId = toast.loading("Creating your account...");
+
     try {
-      await onSubmit(data);
-    } catch (error) {
-      console.error("Registration error:", error);
+      await authApi.register({ ...data, status: "ACTIVE" });
+
+      toast.success("Registration successful! Please login.", { id: toastId });
+
+      router.push("/login");
+    } catch (err: any) {
+      let message = "Registration failed. Please try again.";
+
+      if (err instanceof AxiosError) {
+        message =
+          err.response?.data?.message ||
+          err.response?.data?.error ||
+          err.response?.data ||
+          message;
+      }
+
+      setServerError(message);
+      toast.error(message, { id: toastId });
+      console.error("Registration error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -71,6 +88,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           </h2>
           <p className="text-muted-foreground">Join MediCare today</p>
         </div>
+
+        {serverError && (
+          <div className="mb-6 p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center space-x-2 text-destructive text-sm animate-in fade-in slide-in-from-top-1">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{serverError}</span>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
@@ -88,22 +112,19 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               </div>
               <input
                 id="name"
-                type="text"
-                autoComplete="name"
                 {...register("name")}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-background text-foreground ${
                   errors.name
                     ? "border-destructive focus:ring-destructive/50"
                     : "border-input focus:ring-ring"
-                } bg-background text-foreground`}
-                placeholder="Enter your full name"
+                }`}
+                placeholder="John Doe"
               />
             </div>
             {errors.name && (
-              <div className="flex items-center space-x-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.name.message}</span>
-              </div>
+              <p className="text-destructive text-xs flex items-center mt-1">
+                <AlertCircle className="h-3 w-3 mr-1" /> {errors.name.message}
+              </p>
             )}
           </div>
 
@@ -122,28 +143,26 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               <input
                 id="email"
                 type="email"
-                autoComplete="email"
                 {...register("email")}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-background text-foreground ${
                   errors.email
                     ? "border-destructive focus:ring-destructive/50"
                     : "border-input focus:ring-ring"
-                } bg-background text-foreground`}
-                placeholder="Enter your email"
+                }`}
+                placeholder="name@example.com"
               />
             </div>
             {errors.email && (
-              <div className="flex items-center space-x-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.email.message}</span>
-              </div>
+              <p className="text-destructive text-xs flex items-center mt-1">
+                <AlertCircle className="h-3 w-3 mr-1" /> {errors.email.message}
+              </p>
             )}
           </div>
 
           {/* Account Type */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground">
-              Account Type
+              I want to...
             </label>
             <div className="grid grid-cols-2 gap-4">
               <label className="relative">
@@ -153,10 +172,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                   {...register("userType")}
                   className="peer sr-only"
                 />
-                <div className="cursor-pointer border-2 border-border rounded-lg p-4 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5">
-                  <p className="font-medium text-foreground">Customer</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Buy medicines
+                <div className="cursor-pointer border-2 border-border rounded-lg p-3 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50">
+                  <p className="font-medium text-sm text-foreground">
+                    Buy Medicine
                   </p>
                 </div>
               </label>
@@ -167,20 +185,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                   {...register("userType")}
                   className="peer sr-only"
                 />
-                <div className="cursor-pointer border-2 border-border rounded-lg p-4 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5">
-                  <p className="font-medium text-foreground">Seller</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Sell medicines
+                <div className="cursor-pointer border-2 border-border rounded-lg p-3 text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/50">
+                  <p className="font-medium text-sm text-foreground">
+                    Sell Medicine
                   </p>
                 </div>
               </label>
             </div>
-            {errors.userType && (
-              <div className="flex items-center space-x-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.userType.message}</span>
-              </div>
-            )}
           </div>
 
           {/* Password Field */}
@@ -198,19 +209,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
                 {...register("password")}
-                className={`w-full pl-10 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                className={`w-full pl-10 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-background text-foreground ${
                   errors.password
                     ? "border-destructive focus:ring-destructive/50"
                     : "border-input focus:ring-ring"
-                } bg-background text-foreground`}
-                placeholder="Create a password"
+                }`}
+                placeholder="••••••••"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground"
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -220,44 +230,28 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               </button>
             </div>
 
-            {/* Password Strength Indicators */}
+            {/* Password Strength UI */}
             {password && (
-              <div className="space-y-1 mt-2 p-3 bg-muted/30 rounded-lg">
-                <p className="text-xs font-medium text-muted-foreground mb-2">
-                  Password must contain:
+              <div className="mt-3 p-3 bg-muted/40 rounded-lg space-y-2 border border-border">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                  Requirements
                 </p>
-                <div className="space-y-1">
+                <div className="grid grid-cols-2 gap-2">
                   {[
-                    {
-                      check: passwordChecks.minLength,
-                      label: "At least 8 characters",
-                    },
-                    {
-                      check: passwordChecks.hasUppercase,
-                      label: "One uppercase letter",
-                    },
-                    {
-                      check: passwordChecks.hasLowercase,
-                      label: "One lowercase letter",
-                    },
-                    { check: passwordChecks.hasNumber, label: "One number" },
-                    {
-                      check: passwordChecks.hasSpecial,
-                      label: "One special character",
-                    },
-                  ].map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2">
+                    { check: passwordChecks.minLength, label: "8+ chars" },
+                    { check: passwordChecks.hasUppercase, label: "Uppercase" },
+                    { check: passwordChecks.hasLowercase, label: "Lowercase" },
+                    { check: passwordChecks.hasNumber, label: "Number" },
+                    { check: passwordChecks.hasSpecial, label: "Special" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center space-x-2">
                       {item.check ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
                       ) : (
-                        <div className="h-4 w-4 rounded-full border-2 border-muted-foreground" />
+                        <div className="h-3 w-3 rounded-full border border-muted-foreground/50" />
                       )}
                       <span
-                        className={`text-xs ${
-                          item.check
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-muted-foreground"
-                        }`}
+                        className={`text-[11px] ${item.check ? "text-foreground" : "text-muted-foreground"}`}
                       >
                         {item.label}
                       </span>
@@ -266,12 +260,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 </div>
               </div>
             )}
-
             {errors.password && (
-              <div className="flex items-center space-x-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.password.message}</span>
-              </div>
+              <p className="text-destructive text-xs mt-1">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -290,19 +282,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               <input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                autoComplete="new-password"
                 {...register("confirmPassword")}
-                className={`w-full pl-10 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                className={`w-full pl-10 pr-12 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-background text-foreground ${
                   errors.confirmPassword
                     ? "border-destructive focus:ring-destructive/50"
                     : "border-input focus:ring-ring"
-                } bg-background text-foreground`}
-                placeholder="Confirm your password"
+                }`}
+                placeholder="••••••••"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -312,69 +303,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               </button>
             </div>
             {errors.confirmPassword && (
-              <div className="flex items-center space-x-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.confirmPassword.message}</span>
-              </div>
+              <p className="text-destructive text-xs mt-1">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
-          {/* Terms and Conditions */}
-          <div className="text-xs text-muted-foreground text-center">
-            By creating an account, you agree to our{" "}
-            <a
-              href="/terms"
-              className="text-primary hover:text-primary/80 transition-colors"
-            >
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a
-              href="/privacy"
-              className="text-primary hover:text-primary/80 transition-colors"
-            >
-              Privacy Policy
-            </a>
-          </div>
-
-          {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting || isLoading}
-            className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
+            className="w-full py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all font-medium shadow-sm disabled:opacity-50 active:scale-[0.98]"
           >
-            {isSubmitting || isLoading ? (
-              <span className="flex items-center justify-center space-x-2">
-                <svg
-                  className="animate-spin h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <span>Creating account...</span>
-              </span>
-            ) : (
-              "Create Account"
-            )}
+            {isLoading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
-        {/* Divider */}
-        <div className="relative my-6">
+        <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-border" />
           </div>
@@ -383,17 +327,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           </div>
         </div>
 
-        {/* Login Link */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
-            <button
-              type="button"
-              onClick={onNavigateToLogin}
-              className="text-primary hover:text-primary/80 transition-colors font-medium"
+            <Link
+              href="/login"
+              className="text-primary hover:underline font-medium"
             >
               Sign in
-            </button>
+            </Link>
           </p>
         </div>
       </div>

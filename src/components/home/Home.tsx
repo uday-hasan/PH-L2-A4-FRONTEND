@@ -7,21 +7,11 @@ import NewsletterSection from "./NewsletterSection";
 import Navbar from "../shared/Navbar";
 import Footer from "../shared/Footer";
 
-interface HomePageProps {
-  isLoggedIn?: boolean;
-  userRole?: "customer" | "seller" | "admin";
-  userName?: string;
-}
-
-const HomePage: React.FC<HomePageProps> = ({
-  isLoggedIn = false,
-  userRole = "customer",
-  userName = "User",
-}) => {
+const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navbar */}
-      <Navbar isLoggedIn={isLoggedIn} userRole={userRole} userName={userName} />
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex-1">

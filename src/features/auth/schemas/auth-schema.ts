@@ -1,6 +1,5 @@
 import * as z from "zod";
 
-// Login Schema
 export const loginSchema = z.object({
   email: z
     .string()
@@ -12,7 +11,6 @@ export const loginSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters" }),
 });
 
-// Register Schema
 export const registerSchema = z
   .object({
     name: z
@@ -45,19 +43,20 @@ export const registerSchema = z
       message: "Please select account type",
     }),
 
-    status: z.enum(["ACTIVE", "INACTIVE"]).refine(Boolean, {
-      message: "Please select account status",
-    }),
+    status: z
+      .enum(["ACTIVE", "INACTIVE"])
+      .refine(Boolean, {
+        message: "Please select account status",
+      })
+      .default("ACTIVE"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
-// Type exports
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
-// Backend compatible types (matching your schema)
 export type REGISTER_USER = Omit<RegisterFormData, "confirmPassword">;
 export type LOGIN_USER = LoginFormData;
