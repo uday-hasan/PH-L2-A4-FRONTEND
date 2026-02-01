@@ -9,7 +9,7 @@ export const CategoryCard = ({ category, onStatusChange, onUpdate }: any) => {
     <Card className="relative hover:shadow-md transition-all duration-200 border-border/60">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="space-y-1">
-          <CardTitle className="text-lg font-bold truncate max-w-[150px]">
+          <CardTitle className="text-lg font-bold truncate max-w-36">
             {category.name}
           </CardTitle>
           <Badge

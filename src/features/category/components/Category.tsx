@@ -30,7 +30,9 @@ export default function CategoryPage() {
       setCategories(data.data.categories);
       setTotalPages(data.data.meta.totalPages);
     } catch (err) {
-      toast.error("Failed to load categories");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to load categories",
+      );
     } finally {
       setLoading(false);
     }
@@ -56,7 +58,9 @@ export default function CategoryPage() {
       toast.success("Status updated");
       fetchCategories();
     } catch (err) {
-      toast.error("Failed to update status");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update status",
+      );
     }
   };
 
