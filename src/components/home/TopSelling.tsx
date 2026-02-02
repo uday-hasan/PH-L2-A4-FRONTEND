@@ -1,85 +1,42 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState, useCallback } from "react";
 import { Star, ShoppingCart, TrendingUp } from "lucide-react";
+import Link from "next/link";
 
-interface Medicine {
-  id: string;
-  name: string;
-  description: string;
-  selling_price: number;
-  available_quantity: number;
-  category: {
-    name: string;
-  };
-  reviews: {
-    rating: number;
-  }[];
-}
+import { Medicine } from "@/types/index";
+import { medicineApi } from "@/features/medicine/api/medicine.api";
 
 interface TopSellingProps {
-  medicines?: Medicine[];
+  limit?: number;
 }
 
-const TopSelling: React.FC<TopSellingProps> = ({ medicines }) => {
-  // Mock data for demonstration
-  const mockMedicines: Medicine[] = medicines || [
-    {
-      id: "1",
-      name: "Paracetamol 500mg",
-      description: "Effective pain relief and fever reducer",
-      selling_price: 5.99,
-      available_quantity: 150,
-      category: { name: "Pain Relief" },
-      reviews: [{ rating: 5 }, { rating: 4 }, { rating: 5 }],
-    },
-    {
-      id: "2",
-      name: "Vitamin C 1000mg",
-      description: "Boost your immune system naturally",
-      selling_price: 12.99,
-      available_quantity: 200,
-      category: { name: "Vitamins" },
-      reviews: [{ rating: 5 }, { rating: 5 }, { rating: 4 }, { rating: 5 }],
-    },
-    {
-      id: "3",
-      name: "Amoxicillin 250mg",
-      description: "Antibiotic for bacterial infections",
-      selling_price: 8.99,
-      available_quantity: 80,
-      category: { name: "Antibiotics" },
-      reviews: [{ rating: 4 }, { rating: 5 }, { rating: 4 }],
-    },
-    {
-      id: "4",
-      name: "Omeprazole 20mg",
-      description: "Relief from acid reflux and heartburn",
-      selling_price: 15.99,
-      available_quantity: 120,
-      category: { name: "Digestive Health" },
-      reviews: [{ rating: 5 }, { rating: 5 }, { rating: 5 }],
-    },
-    {
-      id: "5",
-      name: "Ibuprofen 400mg",
-      description: "Anti-inflammatory and pain reliever",
-      selling_price: 7.49,
-      available_quantity: 180,
-      category: { name: "Pain Relief" },
-      reviews: [{ rating: 4 }, { rating: 4 }, { rating: 5 }],
-    },
-    {
-      id: "6",
-      name: "Cetirizine 10mg",
-      description: "Allergy relief medication",
-      selling_price: 6.99,
-      available_quantity: 160,
-      category: { name: "Allergy" },
-      reviews: [{ rating: 5 }, { rating: 4 }, { rating: 5 }],
-    },
-  ];
+const TopSelling: React.FC<TopSellingProps> = ({ limit = 6 }) => {
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchTopSelling = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await medicineApi.getAll({
+        page: 1,
+        limit: limit,
+        search: "",
+      });
+      setMedicines(res.data.data.medicines);
+    } catch (error) {
+      console.error("Failed to fetch top selling medicines:", error);
+      setMedicines([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [limit]);
+
+  useEffect(() => {
+    fetchTopSelling();
+  }, [fetchTopSelling]);
 
   const calculateAverageRating = (reviews: { rating: number }[]) => {
-    if (reviews.length === 0) return 0;
+    if (!reviews || reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
     return (sum / reviews.length).toFixed(1);
   };
@@ -109,75 +66,151 @@ const TopSelling: React.FC<TopSellingProps> = ({ medicines }) => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockMedicines.map((medicine) => (
-            <div
-              key={medicine.id}
-              className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group"
-            >
-              {/* Product Image Placeholder */}
-              <div className="aspect-square bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center relative overflow-hidden">
-                <div className="text-6xl font-bold text-primary/20">
-                  {medicine.name.charAt(0)}
-                </div>
-                <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
-                  Bestseller
-                </div>
-              </div>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(limit)].map((_, i) => (
+              <div
+                key={i}
+                className="bg-card border border-border rounded-lg overflow-hidden animate-pulse"
+              >
+                {/* Skeleton Image */}
+                <div className="aspect-square bg-muted" />
 
-              {/* Product Info */}
-              <div className="p-4 space-y-3">
-                <div>
-                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
-                    {medicine.category.name}
-                  </span>
-                </div>
-                <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
-                  {medicine.name}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {medicine.description}
-                </p>
+                {/* Skeleton Content */}
+                <div className="p-4 space-y-3">
+                  {/* Category skeleton */}
+                  <div className="h-5 w-20 bg-muted rounded" />
 
-                {/* Rating */}
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  <span className="font-medium text-sm">
-                    {calculateAverageRating(medicine.reviews)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    ({medicine.reviews.length} reviews)
-                  </span>
-                </div>
+                  {/* Title skeleton */}
+                  <div className="h-6 w-3/4 bg-muted rounded" />
 
-                {/* Price and Stock */}
-                <div className="flex items-center justify-between pt-2">
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">
-                      ${medicine.selling_price}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {medicine.available_quantity} in stock
-                    </p>
+                  {/* Description skeleton */}
+                  <div className="space-y-2">
+                    <div className="h-4 w-full bg-muted rounded" />
+                    <div className="h-4 w-2/3 bg-muted rounded" />
                   </div>
-                  <button className="bg-primary text-primary-foreground p-2 rounded-lg hover:bg-primary/90 transition-colors">
-                    <ShoppingCart className="h-5 w-5" />
-                  </button>
+
+                  {/* Rating skeleton */}
+                  <div className="flex items-center space-x-2">
+                    <div className="h-4 w-4 bg-muted rounded" />
+                    <div className="h-4 w-12 bg-muted rounded" />
+                    <div className="h-4 w-16 bg-muted rounded" />
+                  </div>
+
+                  {/* Price and button skeleton */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="space-y-1">
+                      <div className="h-8 w-20 bg-muted rounded" />
+                      <div className="h-3 w-16 bg-muted rounded" />
+                    </div>
+                    <div className="h-10 w-10 bg-muted rounded-lg" />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : medicines.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground text-lg">
+              No medicines available at the moment
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {medicines.map((medicine) => (
+              <Link
+                key={medicine.id}
+                href={`/medicine/${medicine.id}`}
+                className="group"
+              >
+                <div className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                  {/* Product Image Placeholder */}
+                  <div className="aspect-square bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center relative overflow-hidden">
+                    <div className="text-6xl font-bold text-primary/20">
+                      {medicine.name.charAt(0)}
+                    </div>
+                    {medicine.available_quantity > 100 && (
+                      <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
+                        Bestseller
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">
+                        {medicine.category?.name || "General"}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
+                      {medicine.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {medicine.description ||
+                        "High quality pharmaceutical product"}
+                    </p>
+
+                    {/* Rating */}
+                    {medicine.reviews && medicine.reviews.length > 0 ? (
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                        <span className="font-medium text-sm">
+                          {calculateAverageRating(medicine.reviews)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          ({medicine.reviews.length} reviews)
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-muted" />
+                        <span className="text-xs text-muted-foreground">
+                          No reviews yet
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Price and Stock */}
+                    <div className="flex items-center justify-between pt-2">
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">
+                          ${medicine.selling_price}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {medicine.available_quantity} in stock
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          // Add to cart logic here
+                          console.log("Add to cart:", medicine.id);
+                        }}
+                        className="bg-primary text-primary-foreground p-2 rounded-lg hover:bg-primary/90 transition-colors"
+                      >
+                        <ShoppingCart className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Mobile View All Button */}
-        <div className="mt-8 text-center md:hidden">
-          <a
-            href="/medicine"
-            className="inline-block text-primary hover:text-primary/80 font-medium transition-colors"
-          >
-            View All Products →
-          </a>
-        </div>
+        {!loading && medicines.length > 0 && (
+          <div className="mt-8 text-center md:hidden">
+            <a
+              href="/medicine"
+              className="inline-block text-primary hover:text-primary/80 font-medium transition-colors"
+            >
+              View All Products →
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );
