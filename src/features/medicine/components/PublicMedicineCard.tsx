@@ -1,6 +1,7 @@
 import { Star, ShoppingCart } from "lucide-react";
 import { Medicine } from "@/types/index";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface PublicMedicineCardProps {
   medicine: Medicine;
@@ -14,7 +15,7 @@ export const PublicMedicineCard = ({ medicine }: PublicMedicineCardProps) => {
   };
 
   const avgRating = calculateAverageRating(medicine.reviews || []);
-
+  const router = useRouter();
   return (
     <Link href={`/medicine/${medicine.id}`}>
       <div className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow group cursor-pointer">
@@ -67,10 +68,9 @@ export const PublicMedicineCard = ({ medicine }: PublicMedicineCardProps) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Add to cart logic here
-                console.log("Add to cart:", medicine.id);
+                router.push(`/medicine/${medicine.id}`);
               }}
-              className="bg-primary text-primary-foreground p-2 rounded-lg hover:bg-primary/90 transition-colors"
+              className="bg-primary text-primary-foreground p-2 rounded-lg hover:bg-primary/90 transition-colors cursor-pointer"
             >
               <ShoppingCart className="h-5 w-5" />
             </button>

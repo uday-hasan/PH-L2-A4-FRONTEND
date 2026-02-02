@@ -10,7 +10,7 @@ export interface Review {
   id: string;
   rating: number;
   comment: string | null;
-  createdAt: string; // ISO date string
+  createdAt: string;
   userId: string;
   medicineId: string;
   user?: {
@@ -42,7 +42,6 @@ export interface Medicine {
   };
   reviews?: Review[];
 
-  // Prisma count object for relations
   _count?: {
     reviews: number;
     orderItems?: number;
@@ -55,4 +54,18 @@ export interface PaginationMeta {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface CartItem {
+  id: string;
+  cartId: string;
+  medicineId: string;
+  quantity: number;
+  medicine: Medicine;
+}
+
+export interface Cart {
+  id: string;
+  customerId: string;
+  items: CartItem[];
 }

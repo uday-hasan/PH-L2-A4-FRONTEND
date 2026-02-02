@@ -4,25 +4,31 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/use-auth-store";
 import { authApi } from "@/features/auth/api/auth.api";
-import { Menu, X, LogOut, Heart, ChevronRight, Box } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
+  Menu,
+  X,
+  LogOut,
+  Heart,
+  ChevronRight,
+  Box,
   LayoutDashboard,
   Package,
   Users,
   ShoppingBag,
   BarChart3,
   Home,
+  ShoppingCart,
+  Star,
+  User,
+  ClipboardList,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
+// 1. Updated Nav Items with CUSTOMER role
 export const NAV_ITEMS = {
   ADMIN: [
     { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    {
-      label: "Manage Categories",
-      href: "/dashboard/categories",
-      icon: Box,
-    },
+    { label: "Manage Categories", href: "/dashboard/categories", icon: Box },
     { label: "Manage Users", href: "/dashboard/users", icon: Users },
     { label: "All Medicines", href: "/dashboard/medicine", icon: Package },
     { label: "System Logs", href: "/dashboard/logs", icon: BarChart3 },
@@ -30,8 +36,13 @@ export const NAV_ITEMS = {
   SELLER: [
     { label: "Store Overview", href: "/dashboard", icon: LayoutDashboard },
     { label: "My Medicines", href: "/dashboard/medicine", icon: Package },
-
     { label: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
+  ],
+  CUSTOMER: [
+    { label: "My Profile", href: "/dashboard/profile", icon: User },
+    { label: "My Cart", href: "/dashboard/cart", icon: ShoppingCart },
+    { label: "My Orders", href: "/dashboard/orders", icon: ClipboardList },
+    { label: "My Reviews", href: "/dashboard/reviews", icon: Star },
   ],
 };
 
@@ -44,7 +55,8 @@ const NavContent = ({
   const router = useRouter();
   const { user, logout: clearStore } = useAuthStore();
 
-  const role = user?.userType as "ADMIN" | "SELLER";
+  // 2. Updated role type cast
+  const role = user?.userType as keyof typeof NAV_ITEMS;
   const menuItems = NAV_ITEMS[role] || [];
 
   const handleLogout = async () => {
@@ -74,7 +86,7 @@ const NavContent = ({
       <div className="px-6 mb-6">
         <div className="bg-accent px-3 py-1 rounded-full w-fit">
           <p className="text-[10px] uppercase font-bold text-accent-foreground tracking-wider">
-            {role} Portal
+            {role || "User"} Portal
           </p>
         </div>
       </div>
@@ -124,10 +136,12 @@ const NavContent = ({
       <div className="p-4 border-t border-border bg-accent/30">
         <div className="flex items-center space-x-3 px-3 mb-4">
           <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-            {user?.name?.[0]}
+            {user?.name?.[0] || "U"}
           </div>
           <div className="overflow-hidden">
-            <p className="text-sm font-bold truncate">{user?.name}</p>
+            <p className="text-sm font-bold truncate">
+              {user?.name || "Guest"}
+            </p>
             <p className="text-xs text-muted-foreground truncate">
               {user?.email}
             </p>
@@ -144,12 +158,12 @@ const NavContent = ({
     </div>
   );
 };
+
 const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   return (
     <>
-      {/* Mobile Toggle Button (Visible only on small screens) */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -159,7 +173,6 @@ const Sidebar = () => {
         </button>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
       {isMobileOpen && (
         <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
@@ -167,7 +180,6 @@ const Sidebar = () => {
         />
       )}
 
-      {/* Sidebar Container */}
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 transition-transform duration-300 lg:translate-x-0",
