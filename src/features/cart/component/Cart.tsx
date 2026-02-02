@@ -1,26 +1,26 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-
 import { toast } from "sonner";
+
 import { cartApi } from "../api/cart.api";
 import CartItemRow from "./CartItemRow";
 import CartSummary from "./CartSummary";
+import CheckoutModal from "./CheckoutModal";
 
 export default function CartPage() {
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const fetchCart = async () => {
     try {
       const res = await cartApi.getCart();
       setCart(res.data.data);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to load cart",
-      );
+      toast.error("Failed to load cart");
     } finally {
       setLoading(false);
     }
@@ -29,6 +29,22 @@ export default function CartPage() {
   useEffect(() => {
     fetchCart();
   }, []);
+
+  // Use useMemo to calculate totals whenever cart items change
+  const totals = useMemo(() => {
+    if (!cart?.items) return { subtotal: 0, shipping: 0, tax: 0, total: 0 };
+
+    const subtotal = cart.items.reduce(
+      (acc: number, item: any) =>
+        acc + item.medicine.selling_price * item.quantity,
+      0,
+    );
+    const shipping = subtotal > 50 ? 0 : 10;
+    const tax = subtotal * 0.05;
+    const total = subtotal + shipping + tax;
+
+    return { subtotal, shipping, tax, total };
+  }, [cart]);
 
   const updateQty = async (itemId: string, newQty: number) => {
     try {
@@ -45,7 +61,7 @@ export default function CartPage() {
       toast.success("Item removed");
       fetchCart();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Remove failed");
+      toast.error("Remove failed");
     }
   };
 
@@ -93,10 +109,20 @@ export default function CartPage() {
             />
           ))}
         </div>
+
         <div className="lg:col-span-1">
-          <CartSummary items={cart.items} />
+          <CartSummary
+            totals={totals}
+            onCheckout={() => setIsCheckoutOpen(true)}
+          />
         </div>
       </div>
+
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onOpenChange={setIsCheckoutOpen}
+        total={totals.total}
+      />
     </div>
   );
 }

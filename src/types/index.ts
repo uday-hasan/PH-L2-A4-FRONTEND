@@ -69,3 +69,24 @@ export interface Cart {
   customerId: string;
   items: CartItem[];
 }
+
+export type ORDER_STATUS = "PENDING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+
+export interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  medicine: {
+    name: string;
+    selling_price: number;
+  };
+}
+
+export interface Order {
+  id: string;
+  totalAmount: number;
+  shippingAddress: string;
+  status: ORDER_STATUS;
+  createdAt: string;
+  items: OrderItem[];
+}
