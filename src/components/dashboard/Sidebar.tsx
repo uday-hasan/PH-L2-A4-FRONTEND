@@ -11,7 +11,6 @@ import {
   Package,
   Users,
   ShoppingBag,
-  PlusCircle,
   BarChart3,
   Home,
 } from "lucide-react";
@@ -25,13 +24,13 @@ export const NAV_ITEMS = {
       icon: Box,
     },
     { label: "Manage Users", href: "/dashboard/users", icon: Users },
-    { label: "All Products", href: "/dashboard/products", icon: Package },
+    { label: "All Medicines", href: "/dashboard/medicine", icon: Package },
     { label: "System Logs", href: "/dashboard/logs", icon: BarChart3 },
   ],
   SELLER: [
     { label: "Store Overview", href: "/dashboard", icon: LayoutDashboard },
-    { label: "My Products", href: "/dashboard/my-products", icon: Package },
-    { label: "Add Product", href: "/dashboard/add-product", icon: PlusCircle },
+    { label: "My Medicines", href: "/dashboard/medicine", icon: Package },
+
     { label: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
   ],
 };
