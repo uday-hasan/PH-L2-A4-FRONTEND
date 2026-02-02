@@ -28,26 +28,29 @@ const Navbar = () => {
     if (!user) return [];
 
     const items: { label: string; path: string }[] = [
-      { label: "Profile", path: "/profile" },
+      { label: "Profile", path: "/dashboard/profile" },
     ];
 
     if (user.userType === "ADMIN" || user.userType === "SELLER") {
-      items.unshift({ label: "Dashboard", path: "/dashboard" });
+      items.unshift({ label: "Dashboard", path: "/dashboard/profile" });
     }
 
     if (user.userType === "CUSTOMER") {
       items.unshift(
-        { label: "My Orders", path: "/orders" },
-        { label: "Cart", path: "/cart" },
+        { label: "My Orders", path: "/dashboard/orders" },
+        { label: "Cart", path: "/dashboard/cart" },
       );
     }
 
     if (user.userType === "SELLER" || user.userType === "ADMIN") {
-      items.push({ label: "Manage Products", path: "/manage-products" });
+      items.push({
+        label: "Manage Medicine",
+        path: "/dashboard/medicine",
+      });
     }
 
     if (user.userType === "ADMIN") {
-      items.push({ label: "Manage Users", path: "/manage-users" });
+      items.push({ label: "Manage Users", path: "/dashboard/users" });
     }
 
     return items;

@@ -15,10 +15,9 @@ import {
   Package,
   Users,
   ShoppingBag,
-  BarChart3,
+  // BarChart3,
   Home,
   ShoppingCart,
-  Star,
   User,
   ClipboardList,
 } from "lucide-react";
@@ -27,13 +26,16 @@ import { cn } from "@/lib/utils";
 // 1. Updated Nav Items with CUSTOMER role
 export const NAV_ITEMS = {
   ADMIN: [
-    { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
+    // { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
+    { label: "My Profile", href: "/dashboard/profile", icon: User },
     { label: "Manage Categories", href: "/dashboard/categories", icon: Box },
     { label: "Manage Users", href: "/dashboard/users", icon: Users },
     { label: "All Medicines", href: "/dashboard/medicine", icon: Package },
-    { label: "System Logs", href: "/dashboard/logs", icon: BarChart3 },
+    { label: "All Orders", href: "/dashboard/orders", icon: Package },
+    // { label: "System Logs", href: "/dashboard/logs", icon: BarChart3 },
   ],
   SELLER: [
+    { label: "My Profile", href: "/dashboard/profile", icon: User },
     { label: "Store Overview", href: "/dashboard", icon: LayoutDashboard },
     { label: "My Medicines", href: "/dashboard/medicine", icon: Package },
     { label: "Orders", href: "/dashboard/orders", icon: ShoppingBag },
@@ -42,7 +44,7 @@ export const NAV_ITEMS = {
     { label: "My Profile", href: "/dashboard/profile", icon: User },
     { label: "My Cart", href: "/dashboard/cart", icon: ShoppingCart },
     { label: "My Orders", href: "/dashboard/orders", icon: ClipboardList },
-    { label: "My Reviews", href: "/dashboard/reviews", icon: Star },
+    // { label: "My Reviews", href: "/dashboard/reviews", icon: Star },
   ],
 };
 
