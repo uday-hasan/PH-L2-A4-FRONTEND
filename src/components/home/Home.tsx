@@ -4,15 +4,11 @@ import TopSelling from "./TopSelling";
 import ReviewsSection from "./ReviewsSection";
 import CategoriesSection from "./CategoriesSection";
 import NewsletterSection from "./NewsletterSection";
-import Navbar from "../shared/Navbar";
 import Footer from "../shared/Footer";
 
 const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <Navbar />
-
       {/* Main Content */}
       <main className="flex-1">
         {/* Hero Section */}

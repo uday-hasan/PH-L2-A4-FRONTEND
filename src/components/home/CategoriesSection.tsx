@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Pill,
   Heart,
@@ -10,16 +11,28 @@ import {
   Stethoscope,
 } from "lucide-react";
 import Link from "next/link";
+import { Category } from "@/types";
+import { toast } from "sonner";
+import { categoryApi } from "@/features/category/category.api";
 
-interface Category {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  productCount: number;
-}
+// Skeleton Component
+const CategorySkeleton = () => (
+  <div className="bg-card border border-border rounded-lg p-6 animate-pulse">
+    <div className="flex flex-col items-center text-center space-y-3">
+      {/* Icon Skeleton */}
+      <div className="bg-muted h-16 w-16 rounded-full"></div>
+
+      {/* Category Name Skeleton */}
+      <div className="h-5 bg-muted rounded w-24"></div>
+
+      {/* Product Count Skeleton */}
+      <div className="h-4 bg-muted rounded w-20"></div>
+    </div>
+  </div>
+);
 
 const CategoriesSection: React.FC = () => {
-  const categories: Category[] = [
+  const categories = [
     {
       id: "1",
       name: "Pain Relief",
@@ -70,6 +83,30 @@ const CategoriesSection: React.FC = () => {
     },
   ];
 
+  const [medicines, setMedicines] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchMedicines = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await categoryApi.getAll({
+        limit: 8,
+        page: 1,
+        search: "",
+      });
+      console.log(res.data.data);
+      setMedicines(res.data.data.categories);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to load inventory");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMedicines();
+  }, [fetchMedicines]);
+
   return (
     <section className="py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,41 +122,49 @@ const CategoriesSection: React.FC = () => {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6">
-          {categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/medicine?category=${category.id}`}
-              className="group bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer"
-            >
-              <div className="flex flex-col items-center text-center space-y-3">
-                {/* Icon */}
-                <div className="bg-primary/10 text-primary p-4 rounded-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  {category.icon}
-                </div>
+          {loading
+            ? // Show skeleton loaders while loading
+              Array.from({ length: 8 }).map((_, index) => (
+                <CategorySkeleton key={index} />
+              ))
+            : // Show actual categories when loaded
+              medicines.map((category, index) => (
+                <Link
+                  key={category.id}
+                  href={`/medicine?category=${category.id}`}
+                  className="group bg-card border border-border rounded-lg p-6 hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer"
+                >
+                  <div className="flex flex-col items-center text-center space-y-3">
+                    {/* Icon */}
+                    <div className="bg-primary/10 text-primary p-4 rounded-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      {categories[index]?.icon}
+                    </div>
 
-                {/* Category Name */}
-                <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {category.name}
-                </h3>
+                    {/* Category Name */}
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {category.name}
+                    </h3>
 
-                {/* Product Count */}
-                <p className="text-sm text-muted-foreground">
-                  {category.productCount} products
-                </p>
-              </div>
-            </Link>
-          ))}
+                    {/* Product Count */}
+                    <p className="text-sm text-muted-foreground">
+                      {category._count.medicine} products
+                    </p>
+                  </div>
+                </Link>
+              ))}
         </div>
 
         {/* View All Categories Button */}
-        <div className="text-center mt-12">
-          <Link
-            href="/categories"
-            className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm"
-          >
-            View All Categories
-          </Link>
-        </div>
+        {!loading && (
+          <div className="text-center mt-12">
+            <Link
+              href="/categories"
+              className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-sm"
+            >
+              View All Categories
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );

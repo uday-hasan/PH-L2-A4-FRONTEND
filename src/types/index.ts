@@ -1,6 +1,9 @@
 export interface Category {
   id: string;
   name: string;
+  _count: {
+    medicine: number;
+  };
 }
 
 export interface Medicine {
@@ -11,6 +14,7 @@ export interface Medicine {
   selling_price: number;
   purchase_price: number;
   available_quantity: number;
+  _count: number;
   status: "ACTIVE" | "INACTIVE";
   category?: Category;
   seller?: {
