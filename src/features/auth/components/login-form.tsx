@@ -35,16 +35,17 @@ const LoginForm: React.FC = () => {
       const response = await authApi.login(data);
 
       const userData = response?.data;
-      if (userData.success) {
-        setAuth(userData);
+      console.log(userData);
+      // if (userData.success) {
+      setAuth(userData);
 
-        router.push("/");
-        router.refresh();
-      } else {
-        setError(
-          userData.message || "Login failed. Please check your credentials.",
-        );
-      }
+      router.push("/");
+      router.refresh();
+      // } else {
+      //   setError(
+      //     userData.message || "Login failed. Please check your credentials.",
+      //   );
+      // }
     } catch (err: any) {
       if (err instanceof AxiosError) {
         const serverMessage =
