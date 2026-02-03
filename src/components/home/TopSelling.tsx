@@ -57,12 +57,12 @@ const TopSelling: React.FC<TopSellingProps> = ({ limit = 6 }) => {
               Most popular medicines this month
             </p>
           </div>
-          <a
+          <Link
             href="/medicine"
             className="hidden md:block text-primary hover:text-primary/80 font-medium transition-colors"
           >
             View All →
-          </a>
+          </Link>
         </div>
 
         {/* Products Grid */}
@@ -185,7 +185,6 @@ const TopSelling: React.FC<TopSellingProps> = ({ limit = 6 }) => {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          // Add to cart logic here
                           console.log("Add to cart:", medicine.id);
                         }}
                         className="bg-primary text-primary-foreground p-2 rounded-lg hover:bg-primary/90 transition-colors"
@@ -203,12 +202,12 @@ const TopSelling: React.FC<TopSellingProps> = ({ limit = 6 }) => {
         {/* Mobile View All Button */}
         {!loading && medicines.length > 0 && (
           <div className="mt-8 text-center md:hidden">
-            <a
+            <Link
               href="/medicine"
               className="inline-block text-primary hover:text-primary/80 font-medium transition-colors"
             >
               View All Products →
-            </a>
+            </Link>
           </div>
         )}
       </div>

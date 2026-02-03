@@ -20,7 +20,9 @@ export default function CartPage() {
       const res = await cartApi.getCart();
       setCart(res.data.data);
     } catch (error) {
-      toast.error("Failed to load cart");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load cart",
+      );
     } finally {
       setLoading(false);
     }
@@ -30,7 +32,6 @@ export default function CartPage() {
     fetchCart();
   }, []);
 
-  // Use useMemo to calculate totals whenever cart items change
   const totals = useMemo(() => {
     if (!cart?.items) return { subtotal: 0, shipping: 0, tax: 0, total: 0 };
 
@@ -61,7 +62,7 @@ export default function CartPage() {
       toast.success("Item removed");
       fetchCart();
     } catch (error) {
-      toast.error("Remove failed");
+      toast.error(error instanceof Error ? error.message : "Remove failed");
     }
   };
 

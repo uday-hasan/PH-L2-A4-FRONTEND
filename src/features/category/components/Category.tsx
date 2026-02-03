@@ -75,7 +75,7 @@ export default function CategoryPage({
     try {
       await categoryApi.update(id, payload);
       toast.success("Category updated successfully", { id: toastId });
-      fetchCategories(); // Refresh grid
+      fetchCategories();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Update failed", {
         id: toastId,

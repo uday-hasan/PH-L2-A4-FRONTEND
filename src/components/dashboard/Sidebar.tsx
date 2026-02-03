@@ -23,16 +23,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// 1. Updated Nav Items with CUSTOMER role
 export const NAV_ITEMS = {
   ADMIN: [
-    // { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { label: "My Profile", href: "/dashboard/profile", icon: User },
     { label: "Manage Categories", href: "/dashboard/categories", icon: Box },
     { label: "Manage Users", href: "/dashboard/users", icon: Users },
     { label: "All Medicines", href: "/dashboard/medicine", icon: Package },
     { label: "All Orders", href: "/dashboard/orders", icon: Package },
-    // { label: "System Logs", href: "/dashboard/logs", icon: BarChart3 },
   ],
   SELLER: [
     { label: "My Profile", href: "/dashboard/profile", icon: User },
@@ -44,7 +41,6 @@ export const NAV_ITEMS = {
     { label: "My Profile", href: "/dashboard/profile", icon: User },
     { label: "My Cart", href: "/dashboard/cart", icon: ShoppingCart },
     { label: "My Orders", href: "/dashboard/orders", icon: ClipboardList },
-    // { label: "My Reviews", href: "/dashboard/reviews", icon: Star },
   ],
 };
 
@@ -57,7 +53,6 @@ const NavContent = ({
   const router = useRouter();
   const { user, logout: clearStore } = useAuthStore();
 
-  // 2. Updated role type cast
   const role = user?.userType as keyof typeof NAV_ITEMS;
   const menuItems = NAV_ITEMS[role] || [];
 

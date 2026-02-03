@@ -15,7 +15,6 @@ import { Category } from "@/types";
 import { toast } from "sonner";
 import { categoryApi } from "@/features/category/category.api";
 
-// Skeleton Component
 const CategorySkeleton = () => (
   <div className="bg-card border border-border rounded-lg p-6 animate-pulse">
     <div className="flex flex-col items-center text-center space-y-3">
@@ -123,12 +122,10 @@ const CategoriesSection: React.FC = () => {
         {/* Categories Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 md:gap-6">
           {loading
-            ? // Show skeleton loaders while loading
-              Array.from({ length: 8 }).map((_, index) => (
+            ? Array.from({ length: 8 }).map((_, index) => (
                 <CategorySkeleton key={index} />
               ))
-            : // Show actual categories when loaded
-              medicines.map((category, index) => (
+            : medicines.map((category, index) => (
                 <Link
                   key={category.id}
                   href={`/medicine?category=${category.id}`}

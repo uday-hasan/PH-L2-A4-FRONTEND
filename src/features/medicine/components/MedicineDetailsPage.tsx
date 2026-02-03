@@ -44,15 +44,12 @@ export default function MedicineDetailsPage({
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
 
-  // State
   const [medicine, setMedicine] = useState<Medicine | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  // const [isFavorite, setIsFavorite] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
   const [cartLoading, setCartLoading] = useState(false);
 
-  // Review State
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
@@ -120,7 +117,7 @@ export default function MedicineDetailsPage({
       setShowReviewForm(false);
       setReviewRating(0);
       setReviewComment("");
-      fetchInitialData(); // Refresh to show new review
+      fetchInitialData();
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to submit review");
     } finally {
@@ -128,7 +125,6 @@ export default function MedicineDetailsPage({
     }
   };
 
-  // Helper: Calculate Distribution
   const getRatingStats = () => {
     const reviews = medicine?.reviews || [];
     const total = reviews.length;

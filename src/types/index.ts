@@ -33,7 +33,6 @@ export interface Medicine {
   createdAt: string;
   updatedAt: string;
 
-  // Relations
   category?: Category;
   seller?: {
     id: string;

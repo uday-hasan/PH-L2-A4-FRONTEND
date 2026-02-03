@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, TrendingUp, FilterX, Check } from "lucide-react"; // Added Check icon
+import { Search, TrendingUp, FilterX, Check } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { medicineApi } from "../api/medicine.api";
 import { Medicine, PaginationMeta } from "@/types/index";
@@ -40,16 +40,13 @@ export default function MedicinePage({ mode = "private" }: MedicinePageProps) {
     limit: mode === "public" ? 6 : 8,
   });
 
-  // Filter States
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
 
-  // Local Input States (for typing)
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
 
-  // Applied States (actually sent to API)
   const [appliedMin, setAppliedMin] = useState<number | undefined>(undefined);
   const [appliedMax, setAppliedMax] = useState<number | undefined>(undefined);
 
@@ -57,7 +54,6 @@ export default function MedicinePage({ mode = "private" }: MedicinePageProps) {
   const [loading, setLoading] = useState(true);
   const debouncedSearch = useDebounce(search, 500);
 
-  // Validation: min > 0, max > 0, max > min
   const isPriceFilterValid =
     Number(minPrice) > 0 &&
     Number(maxPrice) > 0 &&
@@ -110,8 +106,8 @@ export default function MedicinePage({ mode = "private" }: MedicinePageProps) {
     debouncedSearch,
     selectedCategory,
     selectedSupplier,
-    appliedMin, // Changed from raw minPrice
-    appliedMax, // Changed from raw maxPrice
+    appliedMin,
+    appliedMax,
     mode,
   ]);
 
@@ -138,7 +134,6 @@ export default function MedicinePage({ mode = "private" }: MedicinePageProps) {
     fetchMedicines();
   }, [fetchMedicines]);
 
-  // Page reset for instant filters
   useEffect(() => {
     setPage(1);
   }, [debouncedSearch, selectedCategory, selectedSupplier]);
@@ -244,9 +239,6 @@ export default function MedicinePage({ mode = "private" }: MedicinePageProps) {
       </div>
     </div>
   );
-
-  // ... (renderPagination and View logic remain the same)
-  // [Make sure to keep the renderPagination() and mode === "public" checks from your previous version]
 
   const renderPagination = () =>
     meta.totalPages > 1 && (
