@@ -1,6 +1,7 @@
 import apiClient from "@/lib/api-client";
 
 export const medicineApi = {
+  getSuppliers: () => apiClient.get("/users/public/suppliers"),
   getAll: (params: any) => apiClient.get("/medicine", { params }),
   getPrivateAll: (params: any) =>
     apiClient.get("/medicine/private", { params }),
